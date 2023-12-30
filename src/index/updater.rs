@@ -48,7 +48,11 @@ impl Updater {
       .range(0..)?
       .rev()
       .next()
-      .map(|(height, _hash)| height.value() + 1)
+      .map(|result| match result {
+        Ok((height, _hash)) => Some(height.value() + 1),
+        Err(_) => None, // Handle the error as needed
+      })
+      .flatten()
       .unwrap_or(0);
 
     wtx
@@ -141,7 +145,11 @@ impl Updater {
           .range(0..)?
           .rev()
           .next()
-          .map(|(height, _hash)| height.value() + 1)
+          .map(|result| match result {
+            Ok((height, _hash)) => Some(height.value() + 1),
+            Err(_) => None, // Handle the error as needed
+          })
+          .flatten()
           .unwrap_or(0);
         if height != self.height {
           // another update has run between committing and beginning the new

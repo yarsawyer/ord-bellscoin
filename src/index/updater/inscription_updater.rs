@@ -52,7 +52,11 @@ impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
     let next_number = number_to_id
       .iter()?
       .rev()
-      .map(|(number, _id)| number.value() + 1)
+      .map(|result| match result {
+        Ok((number, _id)) => Some(number.value() + 1),
+        Err(_) => None, // Handle the error as needed
+      })
+      .flatten()
       .next()
       .unwrap_or(0);
 
