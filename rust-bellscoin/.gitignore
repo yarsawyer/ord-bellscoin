@@ -1,0 +1,7 @@
+target
+Cargo.lock
+dep_test
+
+#fuzz
+fuzz/hfuzz_target
+fuzz/hfuzz_workspace
