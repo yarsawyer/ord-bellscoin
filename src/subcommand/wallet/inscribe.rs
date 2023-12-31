@@ -28,17 +28,17 @@ struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Inscribe {
-  #[clap(long, help = "Shibescribe <SATPOINT>")]
+  #[clap(long, help = "Inscribe <SATPOINT>")]
   pub(crate) satpoint: Option<SatPoint>,
   #[clap(
     long,
     default_value = "1.0",
-    help = "Use fee rate of <FEE_RATE> sats/vB"
+    help = "Use fee rate of <FEE_RATE> nook/vB"
   )]
   pub(crate) fee_rate: FeeRate,
   #[clap(
     long,
-    help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
+    help = "Use <COMMIT_FEE_RATE> nook/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
   )]
   pub(crate) commit_fee_rate: Option<FeeRate>,
   #[clap(help = "Shibescribe sat with contents of <FILE>")]

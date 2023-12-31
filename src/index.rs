@@ -260,7 +260,9 @@ impl Index {
   }
 
   pub(crate) fn get_unspent_outputs(&self, _wallet: Wallet) -> Result<BTreeMap<OutPoint, Amount>> {
+    
     let mut utxos = BTreeMap::new();
+
     utxos.extend(
       self
         .client
@@ -274,11 +276,13 @@ impl Index {
         }),
     );
 
+
     #[derive(Deserialize)]
     pub(crate) struct JsonOutPoint {
       txid: bitcoin::Txid,
       vout: u32,
     }
+
 
     for JsonOutPoint { txid, vout } in self
       .client
@@ -289,12 +293,15 @@ impl Index {
         Amount::from_sat(self.client.get_raw_transaction(&txid)?.output[vout as usize].value),
       );
     }
+
+
+
     let rtx = self.database.begin_read()?;
     let outpoint_to_value = rtx.open_table(OUTPOINT_TO_VALUE)?;
     for outpoint in utxos.keys() {
       if outpoint_to_value.get(&outpoint.store())?.is_none() {
         return Err(anyhow!(
-          "output in Dogecoin Core wallet but not in ord index: {outpoint}"
+          "output in Bells Core wallet but not in ord index: {outpoint}"
         ));
       }
     }

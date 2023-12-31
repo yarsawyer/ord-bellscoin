@@ -4,7 +4,7 @@ use {super::*, crate::wallet::Wallet};
 pub(crate) struct Send {
   address: Address,
   outgoing: Outgoing,
-  #[clap(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
+  #[clap(long, help = "Use fee rate of <FEE_RATE> nook/vB")]
   fee_rate: FeeRate,
 }
 
@@ -28,7 +28,9 @@ impl Send {
 
     let client = options.dogecoin_rpc_client_for_wallet_command(false)?;
 
+
     let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
+
 
     let inscriptions = index.get_inscriptions(None)?;
 
@@ -39,12 +41,16 @@ impl Send {
             bail!("inscriptions must be sent by inscription ID");
           }
         }
-        satpoint
+        satpoint    
       }
+
       Outgoing::InscriptionId(id) => index
         .get_inscription_satpoint_by_id(id)?
         .ok_or_else(|| anyhow!("Inscription {id} not found"))?,
+        
+
       Outgoing::Amount(amount) => {
+
         let all_inscription_outputs = inscriptions
           .keys()
           .map(|satpoint| satpoint.outpoint)
@@ -63,12 +69,14 @@ impl Send {
         let txid =
           client.send_to_address(&self.address, amount, None, None, None, None, None, None)?;
 
+        println!("5 Sending {:?} to {}", self.outgoing, self.address);
+
         print_json(Output { transaction: txid })?;
 
         return Ok(());
       }
     };
-
+    
     let change = [get_change_address(&client)?, get_change_address(&client)?];
 
     let unsigned_transaction = TransactionBuilder::build_transaction_with_postage(

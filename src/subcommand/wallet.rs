@@ -30,16 +30,16 @@ pub mod transactions;
 pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
   Balance,
-  #[clap(about = "Create new wallet")]
-  Create(create::Create),
+  //#[clap(about = "Create new wallet")]
+  //Create(create::Create),
   #[clap(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
   Inscriptions,
   #[clap(about = "Generate receive address")]
   Receive,
-  #[clap(about = "Restore wallet")]
-  Restore(restore::Restore),
+  //#[clap(about = "Restore wallet")]
+  //Restore(restore::Restore),
   #[clap(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[clap(about = "Send sat or inscription")]
@@ -54,11 +54,11 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Balance => balance::run(options),
-      Self::Create(create) => create.run(options),
+      //Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
-      Self::Restore(restore) => restore.run(options),
+      //Self::Restore(restore) => restore.run(options),
       Self::Sats(sats) => sats.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
@@ -69,7 +69,7 @@ impl Wallet {
 
 fn get_change_address(client: &Client) -> Result<Address> {
   client
-    .call("getrawchangeaddress", &["bech32m".into()])
+    .call("getrawchangeaddress", &[])
     .context("could not get change addresses from wallet")
 }
 

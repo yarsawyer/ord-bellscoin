@@ -81,4 +81,6 @@ pulldown-cmark = "0.9.2"
 
 [patch.crates-io]
 bitcoin = { path = "rust-bellscoin" }
-bitcoincore-rpc = { git = "https://github.com/apezord/rust-dogecoincore-rpc" }
+bitcoincore-rpc = { path = "rust-bellscore-rpc/client" }
+bitcoincore-rpc-json = { path = "rust-bellscore-rpc/json" }
+
