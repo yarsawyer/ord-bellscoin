@@ -1,12 +1,12 @@
 [package]
-name = "ord-dogecoin"
-description = "◉ Ordinal wallet and block explorer for dogecoin"
+name = "ord-bellscoin"
+description = "◉ Ordinal wallet and block explorer for Bells"
 version = "0.5.1"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
-homepage = "https://github.com/apezord/ord-dogecoin"
-repository = "https://github.com/apezord/ord-dogecoin"
+homepage = "https://github.com/yarsawyer/ord-bellscoin"
+repository = "https://github.com/yarsawyer/ord-bellscoin"
 autobins = false
 rust-version = "1.67"
 
