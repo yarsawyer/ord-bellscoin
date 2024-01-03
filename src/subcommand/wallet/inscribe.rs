@@ -1,3 +1,8 @@
+//use core::slice::SlicePattern;
+//use std::io::Read;
+
+use crate::subcommand::info::TransactionsOutput;
+
 use {
   super::*,
   crate::wallet::Wallet,
@@ -77,6 +82,9 @@ impl Inscribe {
       .map(Ok)
       .unwrap_or_else(|| get_change_address(&client))?;
 
+    let addr = get_change_address(&client)?;
+    let privk = get_priv_key(&client, &addr)?;
+
     let () =
       Inscribe::create_inscription_transactions(
         self.satpoint,
@@ -90,6 +98,8 @@ impl Inscribe {
         self.fee_rate,
         self.no_limit,
       )?;
+
+    println!("{:?}",utxos);
 
     // utxos.insert(
     //   reveal_tx.input[0].previous_output,
@@ -192,8 +202,10 @@ impl Inscribe {
       }
     }
 
-    // Settings
+    println!("utxos: {:?}", utxos);
 
+    // Settings
+    
     const PROTOCOL_ID: &[u8] = b"ord";
 
     // Build full inscription script and chunk it into 240-byte chunks.
@@ -227,40 +239,158 @@ impl Inscribe {
     let mut last_partial: Option<Script> = None;
     //let mut p2sh_input: Option<Input> = None;
     
-    let mut iter = script.instructions().peekable();
+    //let mut iter = script.instructions().peekable();
+    let mut instructions = VecDeque::from_iter(script.instructions().flatten());
     //while let Some(instruction) = instruction_iter.next() {
-    while let Some(_) = iter.peek() {
 
-      let mut partial = script::Builder::new();
-
-      let instruction = iter.next().unwrap();
-
+    let mut partial_chunks = vec![];
+    while !instructions.is_empty() { 
+      //let mut partial = script::Builder::new();
+      // partial_chunks.clear();
+      let mut chunks_bytes_len = 0;
+      // let instruction = ;
       if txs.is_empty() {
-        match instruction {
-          Ok(Instruction::Op(op)) => {
-            partial = partial.push_opcode(op);
-          },
-          Ok(Instruction::PushBytes(data)) => {
-            partial = partial.push_slice(data);
-          },
-          Err(e) => {
-              println!("Error processing instruction: {}", e);
-          },
-        }
-
-        // if let Some(_) = iter.peek() {
-        //   instruction = iter.next().unwrap();
-        // }
+        partial_chunks.push(instructions.pop_front().unwrap());
+        // chunks_bytes_len += partial_chunks.last().unwrap().len();
+        chunks_bytes_len += match partial_chunks.last().unwrap() {
+            Instruction::PushBytes(x) => x.len(),
+            Instruction::Op(_) => 1,
+        };
+        // partial.chunks.push(inscription.chunks.shift())
+        
       }
 
-      while partial.len() <= 1500 && iter.peek().is_some() {
-        let instruction = iter.next().unwrap();
+      while chunks_bytes_len <= 1500 && !instructions.is_empty() {
 
+        partial_chunks.push(instructions.pop_front().unwrap());
+        chunks_bytes_len += match partial_chunks.last().unwrap() {
+          Instruction::PushBytes(x) => x.len(),
+          Instruction::Op(_) => 1,
+        };
 
+        partial_chunks.push(instructions.pop_front().unwrap());
+        chunks_bytes_len += match partial_chunks.last().unwrap() {
+            Instruction::PushBytes(x) => x.len(),
+            Instruction::Op(_) => 1,
+        };
       }
+
+      if chunks_bytes_len > 1500 {
+        chunks_bytes_len -= match partial_chunks.last().unwrap() {
+          Instruction::PushBytes(x) => x.len(),
+          Instruction::Op(_) => 1,
+        };
+        instructions.push_front(partial_chunks.pop().unwrap());
+
+        chunks_bytes_len -= match partial_chunks.last().unwrap() {
+          Instruction::PushBytes(x) => x.len(),
+          Instruction::Op(_) => 1,
+        };
+        instructions.push_front(partial_chunks.pop().unwrap());
+      }
+
+      // let mut fuckscripty = script::Builder::new();
+      // for chunx in &partial_chunks {
+      //   match chunx {
+      //     Instruction::Op(op) => {
+      //       fuckscripty = fuckscripty.push_opcode(*op);
+      //     },
+      //     Instruction::PushBytes(x) =>  {
+      //       fuckscripty = fuckscripty.push_slice(x);
+      //     },
+      //   }
+
+      // }
+
+      // println!("partial script: {}", fuckscripty.into_script());
+
+
+
+      let mut temp_lock = script::Builder::new()
+        .push_slice(destination.payload.script_pubkey().as_bytes())
+        .push_opcode(opcodes::all::OP_CHECKSIGVERIFY);
+
+      for _ in &partial_chunks {
+        temp_lock = temp_lock.push_opcode(opcodes::all::OP_DROP);
+      }
+      temp_lock = temp_lock.push_opcode(opcodes::OP_TRUE);
+
+
+
+      // for chungus in &partial_chunks {
+      //   match chungus {
+      //     Instruction::Op(op) => {
+      //       temp_lock = temp_lock.push_opcode(*op);
+      //     },
+      //     Instruction::PushBytes(data) => {
+      //       temp_lock = temp_lock.push_slice(data);
+      //     },
+      //   }
+      // }
+
+
+
+
+      // let temp_lock = temp_lock.into_script();
+      // let lock_hash= temp_lock.script_hash();
+
+      // let p2sh = script::Builder::new()
+      //   .push_opcode(opcodes::all::OP_HASH160)
+      //   .push_slice(&lock_hash)
+      //   .push_opcode(opcodes::all::OP_EQUAL)
+      //   .into_script();
+
+      // let p2sh_output = TxOut { 
+      //   script_pubkey: p2sh,
+      //   value: TransactionBuilder::TARGET_POSTAGE.to_sat(),
+      // };
+
+      // let unsigned_commit_tx = TransactionBuilder::build_transaction_with_postage(
+      //   satpoint,
+      //   inscriptions,
+      //   utxos,
+      //   destination.clone(),
+      //   change,
+      //   commit_fee_rate,
+      // )?;
 
 
     }
+  
+
+
+    // while let Some(_) = iter.peek() {
+
+    //   let mut partial = script::Builder::new();
+
+    //   let instruction = iter.next().unwrap();
+
+    //   if txs.is_empty() {
+    //     match instruction {
+    //       Ok(Instruction::Op(op)) => {
+    //         partial = partial.push_opcode(op);
+    //       },
+    //       Ok(Instruction::PushBytes(data)) => {
+    //         partial = partial.push_slice(data);
+    //       },
+    //       Err(e) => {
+    //           println!("Error processing instruction: {}", e);
+    //       },
+    //     }
+
+    //     // if let Some(_) = iter.peek() {
+    //     //   instruction = iter.next().unwrap();
+    //     // }
+    //   }
+
+    //   while partial.len() <= 1500 && iter.peek().is_some() {
+    //     let instruction = iter.next().unwrap();
+
+
+    //   }
+
+
+    // }
 
     //script.len();
 

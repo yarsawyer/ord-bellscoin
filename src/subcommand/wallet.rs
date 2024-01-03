@@ -1,3 +1,5 @@
+use bitcoin::{secp256k1::SecretKey, PrivateKey};
+
 use {
   super::*,
   bitcoin::secp256k1::{
@@ -70,7 +72,17 @@ impl Wallet {
 fn get_change_address(client: &Client) -> Result<Address> {
   client
     .call("getrawchangeaddress", &[])
-    .context("could not get change addresses from wallet")
+    .context("could not get change addresses from wallet")    
+}
+
+fn get_priv_key(client: &Client, address: &Address) -> Result<PrivateKey> {
+  let address = serde_json::Value::String(address.to_string());
+  let wif: String = client
+    .call("dumpprivkey", &[address])?;
+  //println!("wif: {}", wif);
+  let pk = PrivateKey::from_wif(&wif).unwrap();
+  //println!("private key: {}", pk);
+  Ok(pk)
 }
 
 pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {
