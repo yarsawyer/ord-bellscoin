@@ -55,7 +55,7 @@ impl Preview {
       }
 
       if attempt == 100 {
-        panic!("Dogecoin Core RPC did not respond");
+        panic!("Bells Core RPC did not respond");
       }
 
       thread::sleep(Duration::from_millis(50));

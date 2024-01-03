@@ -59,6 +59,8 @@ impl Inscription {
     })
   }
 
+  
+
   fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {
     builder = builder
       .push_opcode(opcodes::OP_FALSE)
@@ -97,6 +99,10 @@ impl Inscription {
 
   pub(crate) fn body(&self) -> Option<&[u8]> {
     Some(self.body.as_ref()?)
+  }
+
+  pub(crate) fn get_content_type_as_ref(&self) -> Option<&[u8]> {
+    Some(self.content_type.as_ref()?)
   }
 
   pub(crate) fn into_body(self) -> Option<Vec<u8>> {
