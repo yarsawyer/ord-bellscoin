@@ -2,7 +2,7 @@
 //!
 //! Ordinal-aware transaction construction has additional invariants,
 //! constraints, and concerns in addition to those of normal, non-ordinal-aware
-//! Dogecoin transactions.
+//! Bellscoin transactions.
 //!
 //! This module contains a `TransactionBuilder` struct that facilitates
 //! constructing ordinal-aware transactions that take these additional
@@ -16,7 +16,7 @@
 //! recipient's address.
 //!
 //! `TransactionBuilder::build_transaction_with_postage` ensures that the
-//! outgoing value is at most 20,000 sats, reducing it to 10,000 sats if coin
+//! outgoing value is at most 500,000 sats, reducing it to 100,000 sats if coin
 //! selection requires adding excess value.
 //!
 //! `TransactionBuilder::build_transaction_with_value` ensures that the
@@ -316,7 +316,7 @@ impl TransactionBuilder {
         let (utxo, value) = self.select_cardinal_utxo(needed)?;
         self.inputs.push(utxo);
         self.outputs.last_mut().unwrap().1 += value;
-        tprintln!("added {value} sat input to cover {deficit} sat deficit");
+        tprintln!("added {value} nook input to cover {deficit} nook deficit");
       }
     }
 

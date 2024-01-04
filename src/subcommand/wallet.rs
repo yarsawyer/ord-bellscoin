@@ -14,6 +14,7 @@ use {
   fee_rate::FeeRate,
   miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
   transaction_builder::TransactionBuilder,
+  bells_transaction_builder::BellsTransactionBuilder,
 };
 
 pub mod balance;
@@ -26,6 +27,7 @@ mod restore;
 pub mod sats;
 pub mod send;
 pub(crate) mod transaction_builder;
+pub(crate) mod bells_transaction_builder;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
