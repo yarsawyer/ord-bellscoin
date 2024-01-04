@@ -416,20 +416,42 @@ impl Inscribe {
             let mut txsignature = serialized_signature.to_vec();
             txsignature.push(EcdsaSighashType::All as u8);
 
-    
-            let unlock = script::Builder::new()        
-              .push_slice(&last_partial.as_bytes())
+
+
+            // unlock builder
+            
+
+            let mut unlock = script::Builder::new();
+            
+            let mut chunk_iter = last_partial.instructions();
+            while let Some(instruction) = chunk_iter.next() { 
+              match instruction {
+                Ok(Instruction::Op(op)) => {
+                  unlock = unlock.push_opcode(op);
+                },
+                Ok(Instruction::PushBytes(data)) => {
+                  unlock = unlock.push_slice(data);
+                },
+                Err(e) => {
+                  println!("Error processing instruction: {}", e);
+                },
+              }
+            }
+
+            unlock = unlock
               .push_slice(&txsignature)
               .push_slice(&last_lock.as_bytes());
 
             tx.input[0].script_sig = unlock.into_script();
+
+
+
           
           }
         }
       }
 
       txs.push(tx.clone());
-
 
 
 
@@ -464,6 +486,8 @@ impl Inscribe {
       }
 
       last_partial = Some(partial_script.into_script());
+
+
 
     }
     let dest = TxOut {
@@ -536,13 +560,37 @@ impl Inscribe {
           let mut txsignature = serialized_signature.to_vec();
           txsignature.push(EcdsaSighashType::All as u8);
 
-  
-          let unlock = script::Builder::new()        
-            .push_slice(&last_partial.as_bytes())
+          //println!("last partial: {}", hex::encode(last_partial.as_bytes()));
+
+
+          // unlock builder
+            
+
+          let mut unlock = script::Builder::new();
+            
+          let mut chunk_iter = last_partial.instructions();
+          
+          while let Some(instruction) = chunk_iter.next() { 
+            match instruction {
+              Ok(Instruction::Op(op)) => {
+                  unlock = unlock.push_opcode(op);
+              },
+              Ok(Instruction::PushBytes(data)) => {
+                  unlock = unlock.push_slice(data);
+              },
+              Err(e) => {
+                  println!("Error processing instruction: {}", e);
+              },
+            }
+          }
+          
+          unlock = unlock
             .push_slice(&txsignature)
             .push_slice(&last_lock.as_bytes());
+          
+          tx.input[0].script_sig = unlock.into_script();
 
-          tx.input[0].script_sig = unlock.into_script();        
+
       }
     }
     
