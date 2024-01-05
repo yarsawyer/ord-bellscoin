@@ -1,4 +1,4 @@
-// This builder is used to construct a Bells transaction that spends a satpoint.
+// This builder is used to construct a Bells transaction
 
 use {
     super::*,
@@ -254,7 +254,7 @@ use {
           self.inputs.insert(0, utxo);
           self.outputs[0].1 += size;
           tprintln!(
-            "padded alignment output to {} with additional {size} sat input",
+            "padded alignment output to {} with additional {size} nook input",
             self.outputs[0].1
           );
         }
@@ -399,7 +399,7 @@ use {
             previous_output: OutPoint::null(),
             script_sig: Script::new(),
             sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-            witness: Witness::from_vec(vec![vec![]]), // wtf
+            witness: Witness::new(),
           })
           .collect(),
         output: outputs
@@ -450,7 +450,7 @@ use {
             && self.outgoing.offset < amount.to_sat())
           .count(),
         1,
-        "invariant: outgoing sat is contained in utxos"
+        "invariant: outgoing nook is contained in utxos"
       );
   
       assert_eq!(
@@ -474,7 +474,7 @@ use {
           sat_offset += self.amounts[&tx_in.previous_output].to_sat();
         }
       }
-      assert!(found, "invariant: outgoing sat is found in inputs");
+      assert!(found, "invariant: outgoing nook is found in inputs");
   
       let mut output_end = 0;
       let mut found = false;
@@ -483,13 +483,13 @@ use {
         if output_end > sat_offset {
           assert_eq!(
             tx_out.script_pubkey, recipient,
-            "invariant: outgoing sat is sent to recipient"
+            "invariant: outgoing nook is sent to recipient"
           );
           found = true;
           break;
         }
       }
-      assert!(found, "invariant: outgoing sat is found in outputs");
+      assert!(found, "invariant: outgoing nook is found in outputs");
   
       assert_eq!(
         transaction
@@ -542,7 +542,7 @@ use {
           }
           assert_eq!(
             offset, sat_offset,
-            "invariant: sat is at first position in recipient output"
+            "invariant: nook is at first position in recipient output"
           );
         } else {
           assert!(
