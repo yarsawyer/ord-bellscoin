@@ -108,14 +108,17 @@ impl Inscribe {
       let signed_raw_tx = client
       .sign_raw_transaction_with_wallet(&tx, None, None)?
       .hex;
-
-      // println!("{:?}", hex::encode(&signed_raw_tx));
+      
+      if self.dry_run {
+        println!("{:?}", hex::encode(&signed_raw_tx));
+      } else {
 
       let commit = client
           .send_raw_transaction(&signed_raw_tx)
           .context("Failed to send transaction")?;
       
-      println!("TXID: {:?}",commit)
+        println!("TXID: {:?}",commit)
+      }
 
     }
 
@@ -236,7 +239,7 @@ impl Inscribe {
 
     if let Some(body) = &inscription.body() {
       for chunk in body.chunks(240) {
-        parts.push(chunk);        
+        parts.push(chunk);
       }
     }
 
@@ -264,9 +267,11 @@ impl Inscribe {
     let mut instructions = VecDeque::from_iter(script.instructions().flatten());
     
 
-    let mut partial_chunks = vec![];
+
 
     while !instructions.is_empty() { 
+      let mut partial_chunks = vec![];
+
       let mut chunks_bytes_len = 0;
 
       if txs.is_empty() {
@@ -313,15 +318,17 @@ impl Inscribe {
       }
       temp_lock = temp_lock.push_opcode(opcodes::OP_TRUE);
 
-      //println!("lockscript: {}", &temp_lock.into_script());
+      //println!("lockscript: {}", temp_lock.clone().into_script());
 
-      last_lock = Some(temp_lock.clone().into_script());
+      //last_lock = Some(temp_lock.clone().into_script());
       //println!("last_lock: {}", last_lock.unwrap());
 
 
-      //let lockhash = ripemd160::Hash::hash(&sha256::Hash::hash(&temp_lock.into_script().to_bytes()));
+      let p2sh = temp_lock.clone().into_script().to_p2sh();
 
-      let p2sh = temp_lock.into_script().to_p2sh();
+      //println!("p2sh: {:?}",p2sh);
+
+
 
       
       let p2sh_output = TxOut {
@@ -344,6 +351,7 @@ impl Inscribe {
 
       
       if let Some(ref p2sh_input) = p2sh_input {
+        println!("ADD INPUT: {:?}", p2sh_input.clone());
         tx.input.push(p2sh_input.clone());
       }
 
@@ -379,61 +387,7 @@ impl Inscribe {
         }
       }
 
-      // let fee = commit_fee_rate.fee(tx.size()+41+size_unlock);
-
-      // println!("1 --------------------------------------------------------------------");
-
-      // println!("utxos: {:?}", &utxos);
-      
-      // println!("2 --------------------------------------------------------------------");
-
-      // // fund tx 
-
-      // let mut found = None;
-
-      // let inscribed_utxos = inscriptions        
-      //   .keys()
-      //   .map(|satpoint| satpoint.outpoint)
-      //   .collect::<BTreeSet<OutPoint>>();
-
-      // for (utxo, _) in &utxos {
-      //   if inscribed_utxos.contains(utxo) {
-      //     continue;
-      //   }
     
-      //   let value = utxos[utxo];
-    
-      //   if value >= (bitcoin::Amount::from_sat(10000)+fee) {
-      //     found = Some((*utxo, value));
-      //     break;
-      //   }
-      // }
-
-      // if let Some((utxo, value)) = found {
-      //   let input = TxIn {
-      //     previous_output: utxo,
-      //     sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-      //     script_sig: Script::default(),
-      //     witness: Witness::new(),
-      //   };
-      //   tx.input.push(input);
-
-      //   // set change output
-      //   tx.output[1].value = value.to_sat() - 10000 - fee.to_sat();
-
-        
-
-      //   utxos.remove(&utxo);
-
-        
-      //   //println!("utxos: {:?}", &utxos);
-
-      // } else {
-      //   // exit with error
-      //   bail!("Not enough cardinal UTXOs!");
-      // }
-
-
       let mut total_value = Amount::from_sat(0);
       let mut selected_utxos = Vec::new();
       let mut tx_size = tx.size()+size_unlock;
@@ -491,7 +445,7 @@ impl Inscribe {
             let sighash_type = EcdsaSighashType::All;
             let sighash_cache = SighashCache::new(&tx);
             let sighash = sighash_cache.legacy_signature_hash(0, &last_lock, sighash_type as u32).unwrap();
-        
+            
             let secp256k1 = Secp256k1::new();
             let secret_key: SecretKey = SecretKey::from_slice(&change_private_key.to_bytes()).expect("Invalid private key");
 
@@ -573,6 +527,7 @@ impl Inscribe {
       }
 
       last_partial = Some(partial_script.into_script());
+      last_lock = Some(temp_lock.clone().into_script());
 
     }
     
@@ -627,17 +582,7 @@ impl Inscribe {
       }
     }
 
-    //let fee = commit_fee_rate.fee(tx.size()+41+size_unlock);
 
-    //println!("fee: {:?}", &fee);
-
-
-    // fund tx 
-    // println!("3 --------------------------------------------------------------------");
-
-    // println!("utxos: {:?}", &utxos);
-    
-    // println!("4 --------------------------------------------------------------------");
 
     let mut total_value = Amount::from_sat(0);
     let mut selected_utxos = Vec::new();
@@ -688,45 +633,6 @@ impl Inscribe {
     
     
     
-    // let mut found = None;
-
-    // let inscribed_utxos = inscriptions        
-    //         .keys()
-    //         .map(|satpoint| satpoint.outpoint)
-    //         .collect::<BTreeSet<OutPoint>>();
-    
-    // for (utxo, _) in &utxos {
-    //   if inscribed_utxos.contains(utxo) {
-    //       continue;
-    //   }
-        
-    //   let value = utxos[utxo];
-        
-    //   if value >= fee+bitcoin::Amount::from_sat(100000) {
-    //       found = Some((*utxo, value));
-    //       break;
-    //   }
-    // }
-    
-    // if let Some((utxo, value)) = found {
-    //   let input = TxIn {
-    //       previous_output: utxo,
-    //       sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-    //       script_sig: Script::default(),
-    //       witness: Witness::new(),
-    //   };
-
-    //   utxos.remove(&utxo);
-      
-    //   tx.input.push(input);
-
-    //   tx.output[1].value = value.to_sat() - 100000 - fee.to_sat();
-
-
-    // } else {
-    //   // exit with error
-    //   bail!("Not enough cardinal UTXOs!");
-    // }
 
     if let Some(ref last_partial) = last_partial {
       if let Some(ref last_lock) = last_lock {
@@ -737,6 +643,7 @@ impl Inscribe {
           let sighash = sighash_cache.legacy_signature_hash(0, &last_lock, sighash_type as u32).unwrap();
       
           let secp256k1 = Secp256k1::new();
+          
           let secret_key: SecretKey = SecretKey::from_slice(&change_private_key.to_bytes()).expect("Invalid private key");
 
           let signature = secp256k1.sign_ecdsa(
