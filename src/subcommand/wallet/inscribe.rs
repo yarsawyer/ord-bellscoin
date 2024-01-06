@@ -107,62 +107,22 @@ impl Inscribe {
     for tx in txs {
       let signed_raw_tx = client
       .sign_raw_transaction_with_wallet(&tx, None, None)?
-      .hex;
+      .hex;      
+
       
       if self.dry_run {
         println!("{:?}", hex::encode(&signed_raw_tx));
+        println!("--------------------------------------------------------------------------------------------------");
       } else {
 
-      let commit = client
-          .send_raw_transaction(&signed_raw_tx)
-          .context("Failed to send transaction")?;
-      
+        let commit = client
+           .send_raw_transaction(&signed_raw_tx)
+           .context("Failed to send transaction")?;      
+        
         println!("TXID: {:?}",commit)
       }
 
     }
-
-
-
-
-    
-
-
-    // let fees =
-    //   Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
-
-    // if self.dry_run {
-    //   print_json(Output {
-    //     commit: unsigned_commit_tx.txid(),
-    //     reveal: reveal_tx.txid(),
-    //     inscription: reveal_tx.txid().into(),
-    //     fees,
-    //   })?;
-    // } else {
-    //   // removed cause wtf
-    //   //if !self.no_backup {
-    //   //  Inscribe::backup_recovery_key(&client, recovery_key_pair, options.chain().network())?;
-    //   //}
-
-    //   let signed_raw_commit_tx = client
-    //     .sign_raw_transaction_with_wallet(&unsigned_commit_tx, None, None)?
-    //     .hex;
-
-    //   let commit = client
-    //     .send_raw_transaction(&signed_raw_commit_tx)
-    //     .context("Failed to send commit transaction")?;
-
-    //   let reveal = client
-    //     .send_raw_transaction(&reveal_tx)
-    //     .context("Failed to send reveal transaction")?;
-
-    //   print_json(Output {
-    //     commit,
-    //     reveal,
-    //     inscription: reveal.into(),
-    //     fees,
-    //   })?;
-    // };
 
     Ok(())
   }
@@ -351,7 +311,7 @@ impl Inscribe {
 
       
       if let Some(ref p2sh_input) = p2sh_input {
-        println!("ADD INPUT: {:?}", p2sh_input.clone());
+        //println!("ADD INPUT: {:?}", p2sh_input.clone());
         tx.input.push(p2sh_input.clone());
       }
 
