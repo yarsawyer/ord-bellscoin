@@ -640,7 +640,7 @@ pub struct Address {
     /// The network on which this address is usable.
     pub network: Network,
 }
-serde_string_impl!(Address, "a Bitcoin address");
+serde_string_impl!(Address, "a Bells address");
 
 impl Address {
     /// Creates a pay to (compressed) public key hash address from a public key.

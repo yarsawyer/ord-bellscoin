@@ -55,21 +55,21 @@ impl Preview {
       }
 
       if attempt == 100 {
-        panic!("Dogecoin Core RPC did not respond");
+        panic!("Bells Core RPC did not respond");
       }
 
       thread::sleep(Duration::from_millis(50));
     }
 
-    super::wallet::Wallet::Create(super::wallet::create::Create {
-      passphrase: "".into(),
-    })
-    .run(options.clone())?;
+    // super::wallet::Wallet::Create(super::wallet::create::Create {
+    //   passphrase: "".into(),
+    // })
+    // .run(options.clone())?;
 
     let rpc_client = options.dogecoin_rpc_client_for_wallet_command(false)?;
 
     let address =
-      rpc_client.get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?;
+      rpc_client.get_new_address()?;
 
     rpc_client.generate_to_address(101, &address)?;
 

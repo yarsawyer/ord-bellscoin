@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+    "json",
+    "client",
+    "integration_test",
+]
+
+
+[patch.crates-io]
+bitcoin = { path = "../rust-bellscoin" }

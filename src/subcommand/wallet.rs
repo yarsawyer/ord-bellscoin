@@ -1,3 +1,5 @@
+use bitcoin::{secp256k1::SecretKey, PrivateKey};
+
 use {
   super::*,
   bitcoin::secp256k1::{
@@ -12,6 +14,7 @@ use {
   fee_rate::FeeRate,
   miniscript::descriptor::{Descriptor, DescriptorSecretKey, DescriptorXKey, Wildcard},
   transaction_builder::TransactionBuilder,
+  bells_transaction_builder::BellsTransactionBuilder,
 };
 
 pub mod balance;
@@ -24,22 +27,23 @@ mod restore;
 pub mod sats;
 pub mod send;
 pub(crate) mod transaction_builder;
+pub(crate) mod bells_transaction_builder;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Wallet {
   #[clap(about = "Get wallet balance")]
   Balance,
-  #[clap(about = "Create new wallet")]
-  Create(create::Create),
+  //#[clap(about = "Create new wallet")]
+  //Create(create::Create),
   #[clap(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[clap(about = "List wallet inscriptions")]
   Inscriptions,
   #[clap(about = "Generate receive address")]
   Receive,
-  #[clap(about = "Restore wallet")]
-  Restore(restore::Restore),
+  //#[clap(about = "Restore wallet")]
+  //Restore(restore::Restore),
   #[clap(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[clap(about = "Send sat or inscription")]
@@ -54,11 +58,11 @@ impl Wallet {
   pub(crate) fn run(self, options: Options) -> Result {
     match self {
       Self::Balance => balance::run(options),
-      Self::Create(create) => create.run(options),
+      //Self::Create(create) => create.run(options),
       Self::Inscribe(inscribe) => inscribe.run(options),
       Self::Inscriptions => inscriptions::run(options),
       Self::Receive => receive::run(options),
-      Self::Restore(restore) => restore.run(options),
+      //Self::Restore(restore) => restore.run(options),
       Self::Sats(sats) => sats.run(options),
       Self::Send(send) => send.run(options),
       Self::Transactions(transactions) => transactions.run(options),
@@ -69,8 +73,18 @@ impl Wallet {
 
 fn get_change_address(client: &Client) -> Result<Address> {
   client
-    .call("getrawchangeaddress", &["bech32m".into()])
-    .context("could not get change addresses from wallet")
+    .call("getrawchangeaddress", &[])
+    .context("could not get change addresses from wallet")    
+}
+
+fn get_priv_key(client: &Client, address: &Address) -> Result<PrivateKey> {
+  let address = serde_json::Value::String(address.to_string());
+  let wif: String = client
+    .call("dumpprivkey", &[address])?;
+  //println!("wif: {}", wif);
+  let pk = PrivateKey::from_wif(&wif).unwrap();
+  //println!("private key: {}", pk);
+  Ok(pk)
 }
 
 pub(crate) fn initialize_wallet(options: &Options, seed: [u8; 64]) -> Result {

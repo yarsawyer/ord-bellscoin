@@ -75,14 +75,14 @@ impl Options {
   pub(crate) fn rpc_url(&self) -> String {
     self.rpc_url.clone().unwrap_or_else(|| {
       format!(
-        "127.0.0.1:{}/{}",
-        self.chain().default_rpc_port(),
-        self.wallet
+        "127.0.0.1:{}",
+        self.chain().default_rpc_port()      
       )
     })
   }
 
   pub(crate) fn cookie_file(&self) -> Result<PathBuf> {
+
     if let Some(cookie_file) = &self.cookie_file {
       return Ok(cookie_file.clone());
     }
@@ -92,11 +92,11 @@ impl Options {
     } else if cfg!(target_os = "linux") {
       dirs::home_dir()
         .ok_or_else(|| anyhow!("failed to retrieve home dir"))?
-        .join(".dogecoin")
+        .join(".bells")
     } else {
       dirs::data_dir()
         .ok_or_else(|| anyhow!("failed to retrieve data dir"))?
-        .join("Dogecoin")
+        .join("Bells")
     };
 
     let path = self.chain().join_with_data_dir(&path);
@@ -138,37 +138,43 @@ impl Options {
   }
 
   pub(crate) fn dogecoin_rpc_client(&self) -> Result<Client> {
+    
     let cookie_file = self
       .cookie_file()
       .map_err(|err| anyhow!("failed to get cookie file path: {err}"))?;
 
+
     let rpc_url = self.rpc_url();
 
+
     log::info!(
-      "Connecting to Dogecoin Core RPC server at {rpc_url} using credentials from `{}`",
+      "Connecting to Bells Core RPC server at {rpc_url} using credentials from `{}`",
       cookie_file.display()
     );
 
     let client =
       Client::new(&rpc_url, Auth::CookieFile(cookie_file.clone())).with_context(|| {
         format!(
-          "failed to connect to Dogecoin Core RPC at {rpc_url} using cookie file {}",
+          "failed to connect to Bells Core RPC at {rpc_url} using cookie file {}",
           cookie_file.display()
         )
       })?;
 
-    let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
-      "main" => Chain::Mainnet,
-      "test" => Chain::Testnet,
-      "regtest" => Chain::Regtest,
-      "signet" => Chain::Signet,
-      other => bail!("Dogecoin RPC server on unknown chain: {other}"),
-    };
+
+    let rpc_chain = Chain::Mainnet;
+
+    // let rpc_chain = match client.get_blockchain_info()?.chain.as_str() {
+    //   "main" => Chain::Mainnet,
+    //   "test" => Chain::Testnet,
+    //   "regtest" => Chain::Regtest,
+    //   "signet" => Chain::Signet,
+    //   other => bail!("Bells RPC server on unknown chain: {other}"),
+    // };
 
     let ord_chain = self.chain();
 
     if rpc_chain != ord_chain {
-      bail!("Dogecoin RPC server is on {rpc_chain} but ord is on {ord_chain}");
+      bail!("Bells core RPC server is on {rpc_chain} but ord is on {ord_chain}");
     }
 
     Ok(client)
@@ -182,33 +188,35 @@ impl Options {
     let dogecoin_version = client.version()?;
     if dogecoin_version < MIN_VERSION {
       bail!(
-        "Dogecoin Core {} or newer required, current version is {}",
+        "Bells Core {} or newer required, current version is {}",
         Self::format_dogecoin_core_version(MIN_VERSION),
         Self::format_dogecoin_core_version(dogecoin_version),
       );
     }
 
-    if !create {
-      if !client.list_wallets()?.contains(&self.wallet) {
-        client.load_wallet(&self.wallet)?;
-      }
+    //println!("Bells Core version: {}", Self::format_dogecoin_core_version(dogecoin_version));
 
-      let descriptors = client.list_descriptors(None)?.descriptors;
+    //if !create {
+      //if !client.list_wallets()?.contains(&self.wallet) {
+      //  client.load_wallet(&self.wallet)?;
+      // }
 
-      let tr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("tr("))
-        .count();
+      // let descriptors = client.list_descriptors(None)?.descriptors;
 
-      let rawtr = descriptors
-        .iter()
-        .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-        .count();
+      // let tr = descriptors
+      //   .iter()
+      //   .filter(|descriptor| descriptor.desc.starts_with("tr("))
+      //   .count();
 
-      if tr != 2 || descriptors.len() != 2 + rawtr {
-        bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
-      }
-    }
+      // let rawtr = descriptors
+      //   .iter()
+      //   .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+      //   .count();
+
+      // if tr != 2 || descriptors.len() != 2 + rawtr {
+      //   bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", self.wallet);
+      // }
+    //}
 
     Ok(client)
   }

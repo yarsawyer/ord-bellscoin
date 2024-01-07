@@ -2,7 +2,7 @@
 //!
 //! Ordinal-aware transaction construction has additional invariants,
 //! constraints, and concerns in addition to those of normal, non-ordinal-aware
-//! Dogecoin transactions.
+//! Bellscoin transactions.
 //!
 //! This module contains a `TransactionBuilder` struct that facilitates
 //! constructing ordinal-aware transactions that take these additional
@@ -16,7 +16,7 @@
 //! recipient's address.
 //!
 //! `TransactionBuilder::build_transaction_with_postage` ensures that the
-//! outgoing value is at most 20,000 sats, reducing it to 10,000 sats if coin
+//! outgoing value is at most 500,000 sats, reducing it to 100,000 sats if coin
 //! selection requires adding excess value.
 //!
 //! `TransactionBuilder::build_transaction_with_value` ensures that the
@@ -114,9 +114,9 @@ type Result<T> = std::result::Result<T, Error>;
 impl TransactionBuilder {
   const ADDITIONAL_INPUT_VBYTES: usize = 58;
   const ADDITIONAL_OUTPUT_VBYTES: usize = 43;
-  const MAX_POSTAGE: Amount = Amount::from_sat(2 * 10_000);
+  const MAX_POSTAGE: Amount = Amount::from_sat(5 * 100_000);
   const SCHNORR_SIGNATURE_SIZE: usize = 64;
-  pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+  pub(crate) const TARGET_POSTAGE: Amount = Amount::from_sat(100_000);
 
   pub fn build_transaction_with_postage(
     outgoing: SatPoint,
@@ -316,7 +316,7 @@ impl TransactionBuilder {
         let (utxo, value) = self.select_cardinal_utxo(needed)?;
         self.inputs.push(utxo);
         self.outputs.last_mut().unwrap().1 += value;
-        tprintln!("added {value} sat input to cover {deficit} sat deficit");
+        tprintln!("added {value} nook input to cover {deficit} nook deficit");
       }
     }
 
